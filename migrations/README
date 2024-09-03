@@ -1,0 +1,3 @@
+alembic init migrations   
+alembic revision --autogenerate -m 'Init'  
+alembic upgrade head
