@@ -18,21 +18,20 @@ SECRET_KEY = "your_secret_key"
 ALGORITHM = "HS256"
 
 async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
-    if not token:  # Проверяем, если токен пустой
-        return None  # Возвращаем None, если токена нет
+    if not token:
+        return None
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         email: str = payload.get("sub")
         if email is None:
-            return None  # Если email отсутствует
+            return None
     except JWTError:
-        return None  # Если произошла ошибка декодирования
+        return None
 
     user = await repository_users.get_user_by_email(email, db)
     if user is None:
-        return None  # Если пользователь не найден
+        return None
     return user
-
 
 
 @router.post("/", response_model=ContactInDB)
@@ -40,14 +39,11 @@ async def create_contact_endpoint(contact: ContactCreate, db: Session = Depends(
                                   current_user: User = Depends(get_current_user)):
     return create_contact_in_db(db=db, contact=contact)
 
-
 @router.get("/contacts", response_model=list[ContactInDB])
 async def read_contacts(skip: int = 0, limit: int = 10, db: Session = Depends(get_db),
                         current_user: User = Depends(get_current_user)):
     contacts = get_contacts(db, skip=skip, limit=limit)
     return contacts
-
-
 
 @router.get("/{contact_id}", response_model=ContactInDB)
 async def read_contact(contact_id: int, db: Session = Depends(get_db),
